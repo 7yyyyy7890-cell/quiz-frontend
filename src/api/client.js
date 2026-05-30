@@ -1,6 +1,6 @@
 import { ar } from '../i18n/ar';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://quiz-backend-ten-theta.vercel.app';
 
 export function formatApiError(body, fallback) {
   const detail = body?.detail;

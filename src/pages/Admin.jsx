@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { uploadPdf, fetchMaterials } from '../api/client';
 import '../styles/pages.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://quiz-backend-ten-theta.vercel.app';
 
 async function deleteMaterial(id) {
   return fetch(`${API_BASE}/api/v1/materials/${id}`, { method: 'DELETE' });
