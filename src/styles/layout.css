@@ -1,0 +1,44 @@
+.app-header {
+  background: var(--black);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+  border-bottom: 2px solid var(--gold);
+}
+
+.app-header nav {
+  display: flex;
+  gap: 1.5rem;
+  flex-direction: row-reverse;
+}
+
+.app-header nav a {
+  color: var(--white);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.app-header nav a:hover,
+.app-header nav a.active {
+  color: var(--gold);
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-footer {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--gray-muted);
+  border-top: 1px solid #e5e5e5;
+}

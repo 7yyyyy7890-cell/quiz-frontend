@@ -1,0 +1,28 @@
+.logo-symbol {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.logo-symbol__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+}
+
+.logo-symbol__core {
+  position: absolute;
+  inset: 22%;
+  background: var(--olive);
+  border-radius: 50%;
+}
+
+.logo-symbol__accent {
+  position: absolute;
+  top: 12%;
+  right: 12%;
+  width: 18%;
+  height: 18%;
+  background: var(--gold);
+  border-radius: 50%;
+}

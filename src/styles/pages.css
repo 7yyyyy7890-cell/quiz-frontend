@@ -1,0 +1,131 @@
+.page h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--black);
+}
+
+.page .subtitle,
+.page .lead {
+  color: var(--gray-muted);
+  margin-bottom: 1.5rem;
+}
+
+.home-page .home-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.home-page .home-hero .logo-symbol {
+  margin: 0 auto 1.25rem;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  display: block;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: var(--white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.card--primary {
+  border-inline-start: 4px solid var(--olive);
+}
+
+.card__label {
+  display: block;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.card__hint {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--gray-muted);
+  margin-top: 0.25rem;
+}
+
+.join-form,
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 360px;
+}
+
+.join-form label,
+.upload-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.btn {
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.btn--gold {
+  background: var(--gold);
+  color: var(--black);
+}
+
+.btn--gold:hover {
+  background: var(--gold-light);
+}
+
+.btn--olive {
+  background: var(--olive);
+  color: var(--white);
+}
+
+.btn--olive:hover {
+  background: var(--olive-dark);
+}
+
+.btn--outline {
+  background: transparent;
+  border: 1px solid var(--black);
+  color: var(--black);
+  margin-top: 1rem;
+}
+
+.file-drop {
+  border: 2px dashed var(--gray-muted);
+  border-radius: 6px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.file-drop input {
+  display: none;
+}
+
+.error-msg {
+  color: var(--olive-dark);
+  border-inline-start: 3px solid var(--gold);
+  padding-inline-start: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.success-msg {
+  color: var(--olive-dark);
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}

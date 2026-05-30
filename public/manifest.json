@@ -1,0 +1,22 @@
+{
+  "name": "Quiz App Pro",
+  "short_name": "QuizApp",
+  "description": "منصة اختبارات عالمية للمذاكرة والتحدي المباشر",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#566f41",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
