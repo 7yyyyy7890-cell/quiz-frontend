@@ -109,7 +109,7 @@ export default function ApiKeys() {
                           backgroundColor: key.status === 'active' ? '#e6f4ea' : (key.status === 'rate_limited' ? '#fff8e1' : '#fff5f5'),
                           color: key.status === 'active' ? '#2d6a4f' : (key.status === 'rate_limited' ? '#856404' : '#c0392b')
                         }}>
-                          {key.status === 'active' ? '✅ فعال ومتاح' : (key.status === 'rate_limited' ? '⚠️ محدود (نفذ المجاني)' : '❌ غير صالح')}
+                          {key.status === 'active' ? '✅ نشط' : (key.status === 'rate_limited' ? `⚠️ ${key.message}` : `❌ ${key.message}`)}
                         </span>
                       </td>
                       <td style={{ padding: '1rem' }}>
