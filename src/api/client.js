@@ -2,6 +2,10 @@ import { ar } from '../i18n/ar';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://quiz-backend-ten-theta.vercel.app';
 
+export function getApiBase() {
+  return API_BASE;
+}
+
 export function formatApiError(body, fallback) {
   const detail = body?.detail;
   if (typeof detail === 'string') return detail;
@@ -32,20 +36,33 @@ export async function fetchQuiz(materialId, limit = 20) {
 }
 
 export async function uploadPdf(file) {
-  const formData = new FormData();
-  formData.append('file', file);
+  const chunkSize = 3 * 1024 * 1024; // 3 MB chunks to bypass Vercel 4.5MB limit
+  const totalChunks = Math.ceil(file.size / chunkSize);
+  const fileId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-  const res = await fetch(`${API_BASE}/api/v1/upload/pdf`, {
-    method: 'POST',
-    body: formData,
-  });
+  let lastRes = null;
+  for (let i = 0; i < totalChunks; i++) {
+    const chunk = file.slice(i * chunkSize, (i + 1) * chunkSize);
+    const formData = new FormData();
+    formData.append('file', chunk);
+    formData.append('file_id', fileId);
+    formData.append('chunk_index', i);
+    formData.append('total_chunks', totalChunks);
+    formData.append('filename', file.name);
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(formatApiError(body, ar.upload.failed));
+    const res = await fetch(`${API_BASE}/api/v1/upload/chunk`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(formatApiError(body, ar.upload.failed));
+    }
+    lastRes = res;
   }
-
-  return res.json();
+  
+  return lastRes.json();
 }
 
 export function getWsBase() {
