@@ -80,10 +80,7 @@ export default function Layout() {
             </>
           ) : (
             <>
-              <NavLink to="/" end>
-                {ar.nav.home}
-              </NavLink>
-              <NavLink to="/competition">{ar.nav.competition}</NavLink>
+              <NavLink to="/" end>{ar.nav.competition}</NavLink>
             </>
           )}
         </nav>
