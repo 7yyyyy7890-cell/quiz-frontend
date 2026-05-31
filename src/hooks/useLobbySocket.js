@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { getWsBase } from '../api/client';
+import { getApiBase } from '../api/client';
 import { ar } from '../i18n/ar';
 
 const initialState = {
@@ -24,27 +24,65 @@ const initialState = {
 };
 
 export function useLobbySocket() {
-  const wsRef = useRef(null);
   const [state, setState] = useState(initialState);
+  const playerIdRef = useRef(null);
+  const materialIdRef = useRef(null);
+  const rangeStrRef = useRef(null);
+  const pollingIntervalRef = useRef(null);
+  const isConnectedRef = useRef(false);
 
   const patch = useCallback((partial) => {
     setState((prev) => ({ ...prev, ...partial }));
   }, []);
 
   const disconnect = useCallback(() => {
-    wsRef.current?.close();
-    wsRef.current = null;
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    isConnectedRef.current = false;
+    playerIdRef.current = null;
     setState(initialState);
   }, []);
 
+  const pollState = useCallback(async () => {
+    if (!isConnectedRef.current) return;
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/lobby/${materialIdRef.current}/${rangeStrRef.current}/state?player_id=${playerIdRef.current}`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        patch({
+          status: data.status,
+          playerCount: data.player_count || 0,
+          players: data.players || [],
+          countdown: data.countdown ?? null,
+          leaderboard: data.leaderboard || [],
+          questionCount: data.question_count || 0,
+          currentQIndex: data.current_q_idx || 0,
+          currentQuestion: data.question || null,
+          timeout: data.timeout || 0,
+          whoAnswered: data.who_answered || [],
+          roundResult: data.round_result || null,
+          myAnswerAck: data.my_answer_ack || null,
+        });
+
+        if (data.status === 'finished') {
+          // Keep polling for a bit just to show results, but we can stop eventually.
+        }
+      }
+    } catch (e) {
+      console.error("Polling error:", e);
+    }
+  }, [patch]);
+
   const connect = useCallback(
-    (materialId, rangeStr, displayName) => {
+    async (materialId, rangeStr, displayName) => {
       disconnect();
 
-      const base = getWsBase();
-      const url = `${base}/ws/lobby/${materialId}/${rangeStr}?name=${encodeURIComponent(displayName)}`;
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
+      materialIdRef.current = materialId;
+      rangeStrRef.current = rangeStr;
 
       patch({
         status: 'connecting',
@@ -52,105 +90,59 @@ export function useLobbySocket() {
         leaderboard: [],
       });
 
-      ws.onopen = () => patch({ status: 'lobby' });
-
-      ws.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data);
-          switch (msg.type) {
-            case 'lobby_state':
-              patch({
-                status: msg.status,
-                playerCount: msg.player_count,
-                players: msg.players || [],
-                countdown: msg.countdown ?? null,
-              });
-              break;
-
-            case 'quiz_start':
-              patch({
-                status: 'live',
-                questionCount: msg.question_count,
-                countdown: 0,
-              });
-              break;
-
-            case 'new_question':
-              patch({
-                currentQuestion: msg.question,
-                currentQIndex: msg.index,
-                timeout: msg.timeout,
-                myAnswerAck: null,
-                whoAnswered: [],
-                roundResult: null,
-              });
-              break;
-
-            case 'answer_ack':
-              patch({ myAnswerAck: { correct: msg.correct } });
-              break;
-
-            case 'player_answered':
-              setState(prev => ({
-                ...prev,
-                whoAnswered: [...prev.whoAnswered, msg.player_id]
-              }));
-              break;
-
-            case 'round_result':
-              patch({
-                roundResult: {
-                  correct_choice: msg.correct_choice,
-                  player_choices: msg.player_choices
-                },
-                leaderboard: msg.leaderboard || []
-              });
-              break;
-
-            case 'session_finished':
-              patch({
-                status: 'finished',
-                leaderboard: msg.leaderboard || [],
-              });
-              break;
-
-            case 'error':
-              patch({ error: msg.message });
-              break;
-
-            case 'pong':
-              break;
-            default:
-              break;
-          }
-        } catch {
-          patch({ error: ar.errors.invalidMessage });
+      try {
+        const base = getApiBase();
+        const res = await fetch(`${base}/lobby/${materialId}/${rangeStr}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: displayName })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || 'Failed to join');
         }
-      };
-
-      ws.onerror = () => patch({ error: ar.errors.connection, status: 'error' });
-
-      ws.onclose = () => {
-        if (wsRef.current === ws) {
-          setState((prev) =>
-            prev.status === 'finished'
-              ? prev
-              : { ...prev, status: prev.status === 'error' ? 'error' : 'disconnected' }
-          );
-        }
-      };
+        
+        const data = await res.json();
+        playerIdRef.current = data.player_id;
+        isConnectedRef.current = true;
+        
+        // Start polling every 1 second
+        pollState();
+        pollingIntervalRef.current = setInterval(pollState, 1000);
+        
+      } catch (err) {
+        patch({ error: err.message, status: 'error' });
+      }
     },
-    [disconnect, patch]
+    [disconnect, patch, pollState]
   );
 
-  const submitAnswer = useCallback((answer) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-    wsRef.current.send(
-      JSON.stringify({
-        type: 'submit_answer',
-        answer,
-      })
-    );
+  const submitAnswer = useCallback(async (answer) => {
+    if (!isConnectedRef.current || !playerIdRef.current) return;
+    
+    // Optimistic update
+    patch({ myAnswerAck: { correct: null } }); // Just indicating we answered
+
+    try {
+      const base = getApiBase();
+      await fetch(`${base}/lobby/${materialIdRef.current}/${rangeStrRef.current}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_id: playerIdRef.current, answer })
+      });
+      // The next poll will update the exact correctness and who answered.
+      pollState();
+    } catch (e) {
+      console.error("Submit answer error:", e);
+    }
+  }, [patch, pollState]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+    };
   }, []);
 
   return {
@@ -158,6 +150,6 @@ export function useLobbySocket() {
     connect,
     disconnect,
     submitAnswer,
-    isConnected: state.status !== 'idle' && state.status !== 'disconnected',
+    isConnected: state.status !== 'idle' && state.status !== 'disconnected' && state.status !== 'error',
   };
 }

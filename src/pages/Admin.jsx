@@ -57,6 +57,20 @@ export default function Admin() {
     loadActivities();
   }, []);
 
+  // AUTOMATIC EXTRACTION SYSTEM (Vercel Compatibility Fix)
+  // Automatically resume pending extractions without user intervention
+  useEffect(() => {
+    const pendingMaterial = materials.find(m => m.status === 'pending');
+    if (pendingMaterial) {
+      console.log('Auto-resuming extraction for:', pendingMaterial.id);
+      // Wait 1 second before firing to avoid rapid UI blocking
+      const timer = setTimeout(() => {
+        handleResume(pendingMaterial.id);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [materials]);
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
