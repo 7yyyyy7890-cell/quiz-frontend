@@ -60,11 +60,9 @@ export default function Admin() {
   // AUTOMATIC EXTRACTION SYSTEM (Vercel Compatibility Fix)
   // Automatically resume pending extractions, and recover stuck processing states
   useEffect(() => {
-    // We consider it pending if it's explicitly 'pending', OR if it's 'processing' 
-    // because on Vercel, 'processing' means the request was sent. If the effect runs, 
-    // it means the previous request finished (either success or 504 timeout).
-    // We only want to trigger this if we aren't currently waiting for a fetch to return.
-    const needsResume = materials.find(m => m.status === 'pending' || m.status === 'processing');
+    // We only automatically resume if the status is 'pending' (which means the backend finished a chunk and gracefully exited to prevent a timeout).
+    // If it's 'processing', the backend is currently working in the background, so we just poll passively.
+    const needsResume = materials.find(m => m.status === 'pending');
     
     if (needsResume && uploadStatus !== 'uploading_chunk') {
       console.log('Auto-resuming extraction for:', needsResume.id);
