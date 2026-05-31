@@ -58,18 +58,34 @@ export default function Admin() {
   }, []);
 
   // AUTOMATIC EXTRACTION SYSTEM (Vercel Compatibility Fix)
-  // Automatically resume pending extractions without user intervention
+  // Automatically resume pending extractions, and recover stuck processing states
   useEffect(() => {
-    const pendingMaterial = materials.find(m => m.status === 'pending');
-    if (pendingMaterial) {
-      console.log('Auto-resuming extraction for:', pendingMaterial.id);
-      // Wait 1 second before firing to avoid rapid UI blocking
-      const timer = setTimeout(() => {
-        handleResume(pendingMaterial.id);
+    // We consider it pending if it's explicitly 'pending', OR if it's 'processing' 
+    // because on Vercel, 'processing' means the request was sent. If the effect runs, 
+    // it means the previous request finished (either success or 504 timeout).
+    // We only want to trigger this if we aren't currently waiting for a fetch to return.
+    const needsResume = materials.find(m => m.status === 'pending' || m.status === 'processing');
+    
+    if (needsResume && uploadStatus !== 'uploading_chunk') {
+      console.log('Auto-resuming extraction for:', needsResume.id);
+      
+      // Mark that we are currently processing a chunk to avoid duplicate requests
+      setUploadStatus('uploading_chunk');
+      
+      const timer = setTimeout(async () => {
+        try {
+          await resumeMaterial(needsResume.id);
+        } catch (e) {
+          console.error("Resume failed, likely Vercel timeout", e);
+        } finally {
+          setUploadStatus('idle'); // Free the lock
+          loadMaterials(); // Load updated state from DB to trigger the next chunk
+        }
       }, 1000);
+      
       return () => clearTimeout(timer);
     }
-  }, [materials]);
+  }, [materials, uploadStatus]);
 
   const handleDrag = (e) => {
     e.preventDefault();
