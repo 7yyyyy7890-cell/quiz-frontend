@@ -355,7 +355,7 @@ export default function Admin() {
                         backgroundColor: m.status === 'completed' ? '#e6f4ea' : (m.status === 'failed' ? '#fff5f5' : (m.status === 'paused' ? '#e9ecef' : '#fff8e1')),
                         color: m.status === 'completed' ? '#2d6a4f' : (m.status === 'failed' ? '#c0392b' : (m.status === 'paused' ? '#495057' : '#856404'))
                       }}>
-                        {m.status === 'completed' ? '✅ الاستخراج مكتمل' : (m.status === 'failed' ? `❌ فشل الاستخراج: ${m.parser_error || 'خطأ غير معروف'}` : (m.status === 'paused' ? '⏸️ متوقف مؤقتاً' : (m.parser_error ? `⏳ ${m.parser_error}` : '⏳ جاري الاستخراج...'))))}
+                        {m.status === 'completed' ? '✅ الاستخراج مكتمل' : (m.status === 'failed' ? `❌ فشل الاستخراج: ${m.parser_error || 'خطأ غير معروف'}` : (m.status === 'paused' ? '⏸️ متوقف مؤقتاً' : (m.parser_error ? `⏳ ${m.parser_error}` : '⏳ جاري الاستخراج...')))}
                       </span>
                       {(m.status === 'paused' || m.status === 'failed' || m.status === 'pending') && (
                         <button
