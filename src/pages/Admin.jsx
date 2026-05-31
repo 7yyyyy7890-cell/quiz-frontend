@@ -51,15 +51,10 @@ export default function Admin() {
     }
   };
 
-  // Poll every 5 seconds to update the question pool size dynamically
+  // Load data once on mount, user can click refresh manually
   useEffect(() => {
     loadMaterials();
     loadActivities();
-    const interval = setInterval(() => {
-      loadMaterials();
-      loadActivities();
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const handleDrag = (e) => {
